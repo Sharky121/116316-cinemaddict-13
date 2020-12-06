@@ -1,5 +1,3 @@
-import dayjs from "dayjs";
-
 const getRandomFloat = (a = 1, b = 0) => {
   const lower = Math.min(a, b);
   const upper = Math.max(a, b);
@@ -20,7 +18,7 @@ const getRandomValueFromArray = (array) => {
 
 const getRandomArray = (array, quantity) => {
   return new Array(quantity)
-    .fill(undefined)
+    .fill()
     .map(() => array[getRandomInteger(0, array.length - 1)]);
 };
 
@@ -31,20 +29,27 @@ const getRandomText = (text, limit = 5) => {
     .map((item) => item.trim());
 
   return new Array(getRandomInteger(1, limit))
-    .fill(undefined)
+    .fill()
     .map(() => sentences[getRandomInteger(1, sentences.length - 1)])
     .join(`. `);
 };
 
-const getDate = (from, to) => {
-  const fromMilli = dayjs(from).valueOf();
-  const max = dayjs(to).valueOf() - fromMilli;
-
-  const dateOffset = Math.floor(Math.random() * max + 1);
-
-  const newDate = dayjs(fromMilli + dateOffset);
-
-  return dayjs(newDate);
+const getCapitalizeString = (str) => {
+  return str[0].toUpperCase() + str.slice(1);
 };
 
-export {getRandomFloat, getRandomInteger, getRandomValueFromArray, getRandomArray, getRandomText, getDate}
+const getNumberWithSpaces = (number) => {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ` `);
+};
+
+const isProperty = (property, activeControlClass) => {
+  return property ? activeControlClass : ``;
+};
+
+const getCutText = (text, limit = 139) => {
+  return text.length > limit
+    ? text.substring(0, limit) + `...`
+    : text;
+};
+
+export {getRandomFloat, getRandomInteger, getRandomValueFromArray, getRandomArray, getRandomText, getCapitalizeString, getNumberWithSpaces, isProperty, getCutText};

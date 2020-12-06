@@ -1,5 +1,8 @@
+import {RenderPosition, FilmSection} from "./const";
+import {getRandomInteger} from "./utils";
+import {render} from "./utils/render";
 import {createProfileTemplate} from "./views/profile";
-import {createFilterTemplate} from "./views/filter";
+import {createFilterTemplate} from "./views/menu";
 import {createSortTemplate} from "./views/sort";
 import {createFilmsBoardTemplate} from "./views/films";
 import {createFilmsList} from "./views/films-list";
@@ -8,28 +11,17 @@ import {createShowMoreButtonTemplate} from "./views/show-more-button";
 import {createFooterStatsElement} from "./views/footer-stats";
 import {createFilmDetailsPopup} from "./views/film-details-popup";
 import {generateFilmCard} from "./mock/film-card";
-import {generateFilter} from "./mock/filter";
-import {getRandomInteger} from "./utils";
+import {generateMenu} from "./mock/menu";
 
-const FILMS_COUNT = 9;
+const FILMS_COUNT = 5;
 const FILMS_EXTRA_COUNT = 2;
 const FILMS_COUNT_PER_STEP = 5;
-const FilmsContainer = {
-  ALL: `All movies. Upcoming`,
-  TOP: `Top rated`,
-  MOST_COMMENTED: `Most commented`
-};
 
 // Генерируем массив карточек фильма
-const filmCards = new Array(FILMS_COUNT).fill(undefined).map(generateFilmCard);
+const filmCards = new Array(FILMS_COUNT).fill().map(generateFilmCard);
 
 // Создаем массив с данными для фильтра
-const filters = generateFilter(filmCards);
-
-// Функция рендера
-const render = (container, template, place) => {
-  container.insertAdjacentHTML(place, template);
-};
+const menu = generateMenu(filmCards);
 
 const siteBodyElement = document.querySelector(`body`);
 const siteHeaderElement = document.querySelector(`.header`);
@@ -37,25 +29,25 @@ const siteMainElement = document.querySelector(`.main`);
 const siteFooterElement = document.querySelector(`.footer`);
 
 // Рендер пользователя
-render(siteHeaderElement, createProfileTemplate(), `beforeend`);
+render(siteHeaderElement, createProfileTemplate(), RenderPosition.BEFOREEND);
 
 // Рендер меню
-render(siteMainElement, createFilterTemplate(filters), `afterbegin`);
+render(siteMainElement, createFilterTemplate(menu), RenderPosition.AFTERBEGIN);
 
 const siteMenuElement = document.querySelector(`.main-navigation`);
 
 // Рендер сортировки
-render(siteMenuElement, createSortTemplate(), `afterend`);
+render(siteMenuElement, createSortTemplate(), RenderPosition.AFTEREND);
 
 // Рендер основного борда под фильмы
-render(siteMainElement, createFilmsBoardTemplate(), `beforeend`);
+render(siteMainElement, createFilmsBoardTemplate(), RenderPosition.BEFOREEND);
 
 const siteFilmsElement = document.querySelector(`.films`);
 
 // Рендер секции фильмов
-render(siteFilmsElement, createFilmsList(FilmsContainer.ALL), `afterbegin`);
-render(siteFilmsElement, createFilmsList(FilmsContainer.TOP, `isExtra`), `beforeend`);
-render(siteFilmsElement, createFilmsList(FilmsContainer.MOST_COMMENTED, `isExtra`), `beforeend`);
+render(siteFilmsElement, createFilmsList(FilmSection.ALL), RenderPosition.AFTERBEGIN);
+render(siteFilmsElement, createFilmsList(FilmSection.TOP), RenderPosition.BEFOREEND);
+render(siteFilmsElement, createFilmsList(FilmSection.MOST_COMMENTED), RenderPosition.BEFOREEND);
 
 const siteFilmsListContainerElement = document.querySelectorAll(`.films-list__container`);
 
@@ -63,14 +55,14 @@ const [allMoviesContainer, topRatedContainer, mostCommentedContainer] = siteFilm
 
 // Рендер секции All movies
 for (let i = 0; i < Math.min(filmCards.length, FILMS_COUNT_PER_STEP); i++) {
-  render(allMoviesContainer, createFilmCardTemplate(filmCards[i]), `beforeend`);
+  render(allMoviesContainer, createFilmCardTemplate(filmCards[i]), RenderPosition.BEFOREEND);
 }
 
 if (filmCards.length > FILMS_COUNT_PER_STEP) {
   let renderedFilmsCount = FILMS_COUNT_PER_STEP;
 
   // Рендер кнопки показать еще
-  render(allMoviesContainer, createShowMoreButtonTemplate(), `afterend`);
+  render(allMoviesContainer, createShowMoreButtonTemplate(), RenderPosition.AFTEREND);
 
   const showMoreButton = document.querySelector(`.films-list__show-more`);
 
@@ -79,7 +71,7 @@ if (filmCards.length > FILMS_COUNT_PER_STEP) {
 
     filmCards
       .slice(renderedFilmsCount, renderedFilmsCount + FILMS_COUNT_PER_STEP)
-      .forEach((filmCard) => render(allMoviesContainer, createFilmCardTemplate(filmCard), `beforeend`));
+      .forEach((filmCard) => render(allMoviesContainer, createFilmCardTemplate(filmCard), RenderPosition.BEFOREEND));
 
     renderedFilmsCount += FILMS_COUNT_PER_STEP;
 
@@ -89,22 +81,26 @@ if (filmCards.length > FILMS_COUNT_PER_STEP) {
   });
 }
 
+const topRatedFilms = filmCards.sort((a, b) => b.rate - a.rate).slice(0, FILMS_EXTRA_COUNT);
+
 // Рендер секции Top rated
-for (let i = 0; i < FILMS_EXTRA_COUNT; i++) {
-  render(topRatedContainer, createFilmCardTemplate(filmCards[getRandomInteger(0, filmCards.length - 1)]), `beforeend`);
+for (let i = 0; i < topRatedFilms.length; i++) {
+  render(topRatedContainer, createFilmCardTemplate(topRatedFilms[i]), RenderPosition.BEFOREEND);
 }
 
+const topCommentedFilms = filmCards.sort((a, b) => b.comments.length - a.comments.length).slice(0, FILMS_EXTRA_COUNT);
+
 // Рендер секции Most commented
-for (let i = 0; i < FILMS_EXTRA_COUNT; i++) {
-  render(mostCommentedContainer, createFilmCardTemplate(filmCards[getRandomInteger(0, filmCards.length - 1)]), `beforeend`);
+for (let i = 0; i < topCommentedFilms.length; i++) {
+  render(mostCommentedContainer, createFilmCardTemplate(topCommentedFilms[i]), RenderPosition.BEFOREEND);
 }
 
 // Рендер статистики в футере
-render(siteFooterElement, createFooterStatsElement(), `beforeend`);
+render(siteFooterElement, createFooterStatsElement(), RenderPosition.BEFOREEND);
 
 // Рендер попапа с информацией о фильме
 const openPopup = () => {
-  render(siteFooterElement, createFilmDetailsPopup(filmCards[0]), `afterend`);
+  render(siteFooterElement, createFilmDetailsPopup(filmCards[0]), RenderPosition.AFTEREND);
   siteBodyElement.classList.add(`hide-overflow`);
 
   const popupElement = document.querySelector(`.film-details`);

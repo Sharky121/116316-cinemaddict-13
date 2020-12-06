@@ -1,13 +1,11 @@
-import {FILMS_COUNT} from "../const";
+import {getNumberWithSpaces} from "../utils";
 
-const getNumberWithSpaces = (number) => {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ` `);
-};
-
-const count = getNumberWithSpaces(FILMS_COUNT);
+const FILMS_COUNT = 10291;
 
 export const createFooterStatsElement = () => {
-  return `<section class="footer__statistics">
-    <p>${count} movies inside</p>
-  </section>`;
+  return (
+    `<section class="footer__statistics">
+      <p>${getNumberWithSpaces(FILMS_COUNT)} movies inside</p>
+    </section>`
+  );
 };

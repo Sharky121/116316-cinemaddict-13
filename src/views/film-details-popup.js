@@ -1,3 +1,5 @@
+import {formatCommentDate} from "../utils/date";
+
 const createGenresTemplate = (genres) => {
   return genres
     .map((genre) => `<span class="film-details__genre">${genre}</span>`)
@@ -7,19 +9,43 @@ const createGenresTemplate = (genres) => {
 const createCommentTemplate = (comment) => {
   const {text, emotion, author, date} = comment;
 
-  return `<li class="film-details__comment">
-              <span class="film-details__comment-emoji">
-                <img src="${emotion}" width="55" height="55" alt="emoji-smile">
-              </span>
-              <div>
-                <p class="film-details__comment-text">${text}</p>
-                <p class="film-details__comment-info">
-                  <span class="film-details__comment-author">${author}</span>
-                  <span class="film-details__comment-day">${date}</span>
-                  <button class="film-details__comment-delete">Delete</button>
-                </p>
-              </div>
-            </li>`;
+  const commentDate = formatCommentDate(date);
+
+  return (
+    `<li class="film-details__comment">
+      <span class="film-details__comment-emoji">
+        <img src="${emotion}" width="55" height="55" alt="emoji-smile">
+      </span>
+      <div>
+        <p class="film-details__comment-text">${text}</p>
+        <p class="film-details__comment-info">
+          <span class="film-details__comment-author">${author}</span>
+          <span class="film-details__comment-day">${commentDate}</span>
+          <button class="film-details__comment-delete">Delete</button>
+        </p>
+      </div>
+    </li>`
+  );
+};
+
+const createFilmCardControlsTemplate = (cardControl) => {
+  const {title, className, isActive} = cardControl;
+
+  return (
+    `<input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${isActive ? `checked` : ``}>
+    <label for="watchlist" class="film-details__control-label film-details__control-label--${className}">${title}</label>`
+  );
+};
+
+const createInfoTemplate = (filmInfo) => {
+  const {term, cell} = filmInfo;
+
+  return (
+    `<tr class="film-details__row">
+      <td class="film-details__term">${term}</td>
+      <td class="film-details__cell">${cell}</td>
+    </tr>`
+  );
 };
 
 export const createFilmDetailsPopup = (filmCard) => {
@@ -43,95 +69,110 @@ export const createFilmDetailsPopup = (filmCard) => {
     comments
   } = filmCard;
 
-  const releaseDate = date.format(`DD MMMM YYYY`);
-
-  const createFilmCardControlsTemplate = () => {
-    return `<section class="film-details__controls">
-          <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${inWatchlist ? `checked` : ``}>
-          <label for="watchlist" class="film-details__control-label film-details__control-label--watchlist">Add to watchlist</label>
-
-          <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${isWatched ? `checked` : ``}>
-          <label for="watched" class="film-details__control-label film-details__control-label--watched">Already watched</label>
-
-          <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${isFavorite ? `checked` : ``}>
-          <label for="favorite" class="film-details__control-label film-details__control-label--favorite">Add to favorites</label>
-        </section>`;
-  };
+  const FILM_CARD_CONTROLS = [
+    {
+      title: `Add to watchlist`,
+      className: `watchlist`,
+      isActive: inWatchlist
+    },
+    {
+      title: `Already watched`,
+      className: `watched`,
+      isActive: isWatched
+    },
+    {
+      title: `Add to favorites`,
+      className: `favorite`,
+      isActive: isFavorite
+    }
+  ];
 
   const genreTitle = genres.length === 1 ? `Genre` : `Genres`;
+  const releaseDate = date.format(`DD MMMM YYYY`);
   const genresTemplate = createGenresTemplate(genres);
-  const filmCardControl = createFilmCardControlsTemplate();
+
+  const FILM_INFO = [
+    {
+      term: `Director`,
+      cell: director
+    },
+    {
+      term: `Writers`,
+      cell: writers.join(`, `)
+    },
+    {
+      term: `Actors`,
+      cell: actors.join(`, `)
+    },
+    {
+      term: `Release Date`,
+      cell: releaseDate
+    },
+    {
+      term: `Runtime`,
+      cell: runtime
+    },
+    {
+      term: `Country`,
+      cell: country
+    },
+    {
+      term: genreTitle,
+      cell: genresTemplate
+    },
+  ];
+
+  const filmInfo = FILM_INFO.
+    map((item) => createInfoTemplate(item))
+    .join(``);
+
+  const filmCardControl = FILM_CARD_CONTROLS
+    .map((cardControl) => createFilmCardControlsTemplate(cardControl))
+    .join(``);
 
   const commentsTemplate = comments
     .map((comment) => createCommentTemplate(comment))
     .join(``);
 
-  return `<section class="film-details">
-    <form class="film-details__inner" action="" method="get">
-      <div class="film-details__top-container">
-        <div class="film-details__close">
-          <button class="film-details__close-btn" type="button">close</button>
-        </div>
-        <div class="film-details__info-wrap">
-          <div class="film-details__poster">
-            <img class="film-details__poster-img" src="${poster}" alt="">
-
-            <p class="film-details__age">${ageRating}</p>
+  return (
+    `<section class="film-details">
+      <form class="film-details__inner" action="" method="get">
+        <div class="film-details__top-container">
+          <div class="film-details__close">
+            <button class="film-details__close-btn" type="button">close</button>
           </div>
+          <div class="film-details__info-wrap">
+            <div class="film-details__poster">
+              <img class="film-details__poster-img" src="${poster}" alt="">
 
-          <div class="film-details__info">
-            <div class="film-details__info-head">
-              <div class="film-details__title-wrap">
-                <h3 class="film-details__title">${title}</h3>
-                <p class="film-details__title-original">Original: ${originalTitle}</p>
-              </div>
-
-              <div class="film-details__rating">
-                <p class="film-details__total-rating">${rate}</p>
-              </div>
+              <p class="film-details__age">${ageRating}</p>
             </div>
 
-            <table class="film-details__table">
-              <tr class="film-details__row">
-                <td class="film-details__term">Director</td>
-                <td class="film-details__cell">${director}</td>
-              </tr>
-              <tr class="film-details__row">
-                <td class="film-details__term">Writers</td>
-                <td class="film-details__cell">${writers.join(`, `)}</td>
-              </tr>
-              <tr class="film-details__row">
-                <td class="film-details__term">Actors</td>
-                <td class="film-details__cell">${actors.join(`, `)}</td>
-              </tr>
-              <tr class="film-details__row">
-                <td class="film-details__term">Release Date</td>
-                <td class="film-details__cell">${releaseDate}</td>
-              </tr>
-              <tr class="film-details__row">
-                <td class="film-details__term">Runtime</td>
-                <td class="film-details__cell">${runtime}</td>
-              </tr>
-              <tr class="film-details__row">
-                <td class="film-details__term">Country</td>
-                <td class="film-details__cell">${country}</td>
-              </tr>
-              <tr class="film-details__row">
-                <td class="film-details__term">${genreTitle}</td>
-                <td class="film-details__cell">
-                  ${genresTemplate}
-                </td>
-              </tr>
-            </table>
+            <div class="film-details__info">
+              <div class="film-details__info-head">
+                <div class="film-details__title-wrap">
+                  <h3 class="film-details__title">${title}</h3>
+                  <p class="film-details__title-original">Original: ${originalTitle}</p>
+                </div>
 
-            <p class="film-details__film-description">${description}</p>
+                <div class="film-details__rating">
+                  <p class="film-details__total-rating">${rate}</p>
+                </div>
+              </div>
+
+              <table class="film-details__table">
+                ${filmInfo}
+              </table>
+
+              <p class="film-details__film-description">${description}</p>
+            </div>
           </div>
+          <section class="film-details__controls">
+            ${filmCardControl}
+          </section>
         </div>
 
-        ${filmCardControl}
-      </div>
-
-      <div class="film-details__bottom-container">
+        <div class="film-details__bottom-container">
         <section class="film-details__comments-wrap">
           <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${comments.length}</span></h3>
 
@@ -171,5 +212,6 @@ export const createFilmDetailsPopup = (filmCard) => {
         </section>
       </div>
     </form>
-  </section>`;
+    </section>`
+  );
 };

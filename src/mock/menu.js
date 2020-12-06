@@ -1,4 +1,4 @@
-const filmToFilterMap = {
+const filmMenuMap = {
   all: (filmCards) => filmCards.length,
   watchlist: (filmCards) => filmCards
     .filter((filmCard) => filmCard.inWatchlist)
@@ -11,8 +11,8 @@ const filmToFilterMap = {
     .length,
 };
 
-export const generateFilter = (filmCards) => {
-  return Object.entries(filmToFilterMap).map(([filterName, countFilms]) => {
+export const generateMenu = (filmCards) => {
+  return Object.entries(filmMenuMap).map(([filterName, countFilms]) => {
     return {
       name: filterName,
       count: countFilms(filmCards)
