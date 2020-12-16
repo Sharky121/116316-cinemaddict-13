@@ -1,4 +1,5 @@
 import {formatCommentDate} from "../utils/date";
+import {createElement} from "../utils/render";
 
 const createGenresTemplate = (genres) => {
   return genres
@@ -48,7 +49,7 @@ const createInfoTemplate = (filmInfo) => {
   );
 };
 
-export const createFilmDetailsPopup = (filmCard) => {
+const createFilmDetailsPopup = (filmCard) => {
   const {
     poster,
     title,
@@ -215,3 +216,26 @@ export const createFilmDetailsPopup = (filmCard) => {
     </section>`
   );
 };
+
+export default class Popup {
+  constructor(filmCard) {
+    this._filmCard = filmCard;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createFilmDetailsPopup(this._filmCard);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

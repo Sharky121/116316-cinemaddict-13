@@ -21,3 +21,12 @@ export const FilmSection = {
     isHidden: false
   }
 };
+
+export const ESC_KEY = `Escape`;
+
+export const FilmsCount = {
+  STATS: 123000,
+  ALL: 7,
+  EXTRA: 2,
+  COUNT_PER_STEP: 5
+};
