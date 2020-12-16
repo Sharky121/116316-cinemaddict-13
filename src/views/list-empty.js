@@ -1,14 +1,14 @@
 import {createElement} from "../utils/render";
 
-const createFilmsBoardTemplate = () => `<section class="films"></section>`;
+const createNoFilmsTemplate = () => `<h2 class="films-list__title">There are no movies in our database</h2>`;
 
-export default class Board {
+export default class NoFilms {
   constructor() {
     this._element = null;
   }
 
   getTemplate() {
-    return createFilmsBoardTemplate();
+    return createNoFilmsTemplate();
   }
 
   getElement() {

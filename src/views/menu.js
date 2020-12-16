@@ -1,6 +1,7 @@
 import {getCapitalizeString} from "../utils";
+import {createElement} from "../utils/render";
 
-const createFilterItemTemplate = (filter) => {
+const createMenuItemTemplate = (filter) => {
   const {name, count} = filter;
 
   return name === `all`
@@ -8,17 +9,40 @@ const createFilterItemTemplate = (filter) => {
     : `<a href="#${name}" class="main-navigation__item">${getCapitalizeString(name)} <span class="main-navigation__item-count">${count}</span></a>`;
 };
 
-export const createFilterTemplate = (filterItems) => {
-  const filterItemsTemplate = filterItems
-    .map((filter) => createFilterItemTemplate(filter))
+const createMenuTemplate = (menuItems) => {
+  const menuItemsTemplate = menuItems
+    .map((menu) => createMenuItemTemplate(menu))
     .join(``);
 
   return (
     `<nav class="main-navigation">
       <div class="main-navigation__items">
-        ${filterItemsTemplate}
+        ${menuItemsTemplate}
        </div>
       <a href="#stats" class="main-navigation__additional">Stats</a>
     </nav>`
   );
 };
+
+export default class SiteMenu {
+  constructor(filters) {
+    this._filters = filters;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createMenuTemplate(this._filters);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}
