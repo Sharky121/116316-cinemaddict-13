@@ -8,7 +8,6 @@ import FilmsListView from "./views/films-list";
 import FilmCardView from "./views/film-card";
 import LoadMoreButton from "./views/show-more-button";
 import SiteFooter from "./views/footer-stats";
-import NoFilmsView from "./views/list-empty";
 import Popup from "./views/film-details-popup";
 import {generateFilmCard} from "./mock/film-card";
 import {generateMenu} from "./mock/menu";
@@ -32,26 +31,20 @@ const siteMenuElement = new SiteMenuView(menu);
 // РЕНДЕР ЭЛЕМЕНТА МЕНЮ
 render(siteMainElement, siteMenuElement.getElement(), RenderPosition.AFTERBEGIN);
 
-// РЕНДЕР СОРТИРОВКИ
-render(siteMenuElement.getElement(), new SiteSortView().getElement(), RenderPosition.AFTEREND);
-
 // MAIN КАРТОЧКИ ФИЛЬМОВ
 // Рендер основного борда под фильмы
 const siteFilmsBoard = new FilmsBoardView();
 render(siteMainElement, siteFilmsBoard.getElement(), RenderPosition.BEFOREEND);
 
-// РЕНДЕР СЕКЦИЙ ДЛЯ ФИЛЬМОВ
+// Получаем экземпляры объектов для секций ALL, TOP, MOST_COMMENTED
 const siteAllFilmSection = new FilmsListView(FilmSection.ALL);
 const siteTopFilmSection = new FilmsListView(FilmSection.TOP);
 const siteMostCommentedFilmSection = new FilmsListView(FilmSection.MOST_COMMENTED);
-
-render(siteFilmsBoard.getElement(), siteAllFilmSection.getElement(), RenderPosition.AFTERBEGIN);
-render(siteFilmsBoard.getElement(), siteTopFilmSection.getElement(), RenderPosition.BEFOREEND);
-render(siteFilmsBoard.getElement(), siteMostCommentedFilmSection.getElement(), RenderPosition.BEFOREEND);
+const siteNoFilmSection = new FilmsListView(FilmSection.EMPTY);
 
 // ФУНКЦИЯ РЕНДЕРА КАРТОЧКИ ФИЛЬМА
-const renderFilmCard = (filmsSection, film) => {
-  const filmComponent = new FilmCardView(film);
+const renderFilmCard = (filmsSection, filmCard) => {
+  const filmComponent = new FilmCardView(filmCard);
   const PopupTriggerElements = [
     filmComponent.getElement().querySelector(`.film-card__poster`),
     filmComponent.getElement().querySelector(`.film-card__title`),
@@ -63,7 +56,7 @@ const renderFilmCard = (filmsSection, film) => {
 
   // ФУНКЦИЯ ОТКРЫТИЯ ПОПАПА
   const openPopup = () => {
-    const popupElement = new Popup(film);
+    const popupElement = new Popup(filmCard);
     const closePopupElement = popupElement.getElement().querySelector(`.film-details__close-btn`);
 
     siteBodyElement.classList.add(`hide-overflow`);
@@ -92,51 +85,63 @@ const renderFilmCard = (filmsSection, film) => {
   });
 };
 
-// РЕНДЕР СЕКЦИИ ALL MOVIES
+// ФУНКЦИЯ РЕНДЕРА EXTRA СЕКЦИИ С ФИЛЬМАМИ
+const renderExtraSection = (siteFilmSection) => {
+  const {title} = siteFilmSection._filmSection;
+  render(siteFilmsBoard.getElement(), siteFilmSection.getElement(), RenderPosition.BEFOREEND);
+
+  const sortFilms = (title === `Top rated`)
+    ? [...filmCards].sort((a, b) => b.rate - a.rate).slice(0, FilmsCount.EXTRA)
+    : [...filmCards].sort((a, b) => b.comments.length - a.comments.length).slice(0, FilmsCount.EXTRA);
+
+  sortFilms.forEach((filmCard) => {
+    renderFilmCard(siteFilmSection.getElement(), filmCard);
+  });
+};
+
 if (FilmsCount.ALL === 0) {
-  render(siteAllFilmSection, new NoFilmsView().getElement(), RenderPosition.BEFOREEND);
+  render(siteFilmsBoard.getElement(), siteNoFilmSection.getElement(), RenderPosition.BEFOREEND);
 } else {
+  // Рендерим секция под ALL FILMS
+  render(siteFilmsBoard.getElement(), siteAllFilmSection.getElement(), RenderPosition.AFTERBEGIN);
+
+  // РЕНДЕР МЕНЮ СОРТИРОВКИ
+  render(siteMenuElement.getElement(), new SiteSortView().getElement(), RenderPosition.AFTEREND);
+
+  // РЕНДЕР СЕКЦИИ ALL MOVIES
   for (let i = 0; i < Math.min(filmCards.length, FilmsCount.COUNT_PER_STEP); i++) {
     renderFilmCard(siteAllFilmSection.getElement(), filmCards[i]);
   }
-}
 
-// УСЛОВИЕ ДОПОКАЗА ФИЛЬМОВ
-if (filmCards.length > FilmsCount.COUNT_PER_STEP) {
-  let renderedFilmsCount = FilmsCount.COUNT_PER_STEP;
-  const showMoreButtonComponent = new LoadMoreButton();
+  // УСЛОВИЕ ДОПОКАЗА ФИЛЬМОВ
+  if (filmCards.length > FilmsCount.COUNT_PER_STEP) {
+    let renderedFilmsCount = FilmsCount.COUNT_PER_STEP;
+    const showMoreButtonComponent = new LoadMoreButton();
 
-  // РЕНДЕР КНОПКИ ПОКАЗАТЬ ЕЩЕ
-  render(siteAllFilmSection.getElement(), showMoreButtonComponent.getElement(), RenderPosition.AFTEREND);
+    // РЕНДЕР КНОПКИ ПОКАЗАТЬ ЕЩЕ
+    render(siteAllFilmSection.getElement(), showMoreButtonComponent.getElement(), RenderPosition.BEFOREEND);
 
-  showMoreButtonComponent.getElement().addEventListener(`click`, (evt) => {
-    evt.preventDefault();
+    showMoreButtonComponent.getElement().addEventListener(`click`, (evt) => {
+      evt.preventDefault();
 
-    filmCards
-      .slice(renderedFilmsCount, renderedFilmsCount + FilmsCount.COUNT_PER_STEP)
-      .forEach((filmCard) => renderFilmCard(siteAllFilmSection.getElement(), filmCard));
+      filmCards
+        .slice(renderedFilmsCount, renderedFilmsCount + FilmsCount.COUNT_PER_STEP)
+        .forEach((filmCard) => renderFilmCard(siteAllFilmSection.getElement(), filmCard));
 
-    renderedFilmsCount += FilmsCount.COUNT_PER_STEP;
+      renderedFilmsCount += FilmsCount.COUNT_PER_STEP;
 
-    if (renderedFilmsCount >= filmCards.length) {
-      showMoreButtonComponent.getElement().remove();
-      showMoreButtonComponent.removeElement();
-    }
-  });
-}
+      if (renderedFilmsCount >= filmCards.length) {
+        showMoreButtonComponent.getElement().remove();
+        showMoreButtonComponent.removeElement();
+      }
+    });
+  }
 
-// РЕНДЕР СЕКЦИИ TOP RATED
-const topRatedFilms = filmCards.sort((a, b) => b.rate - a.rate).slice(0, FilmsCount.EXTRA);
+  // РЕНДЕР СЕКЦИИ TOP RATED
+  renderExtraSection(siteTopFilmSection);
 
-for (let i = 0; i < topRatedFilms.length; i++) {
-  renderFilmCard(siteTopFilmSection.getElement(), filmCards[i]);
-}
-
-// РЕНДЕР СЕКЦИИ MOST COMMENTED
-const topCommentedFilms = filmCards.sort((a, b) => b.comments.length - a.comments.length).slice(0, FilmsCount.EXTRA);
-
-for (let i = 0; i < topCommentedFilms.length; i++) {
-  renderFilmCard(siteMostCommentedFilmSection.getElement(), filmCards[i]);
+  // РЕНДЕР СЕКЦИИ MOST COMMENTED
+  renderExtraSection(siteMostCommentedFilmSection);
 }
 
 // РЕНДЕР СТАТИСТИКИ В ФУТЕРЕ

@@ -4,9 +4,12 @@ import {createElement} from "../utils/render";
 const createMenuItemTemplate = (filter) => {
   const {name, count} = filter;
 
-  return name === `all`
-    ? `<a href="#${name}" class="main-navigation__item main-navigation__item--active">${getCapitalizeString(name)} movies</a>`
-    : `<a href="#${name}" class="main-navigation__item">${getCapitalizeString(name)} <span class="main-navigation__item-count">${count}</span></a>`;
+  return (
+    `<a href="#${name}" class="main-navigation__item">
+      ${getCapitalizeString(name)}
+      ${name === `all` ? `movies` : `<span class="main-navigation__item-count">${count}</span>`}
+    </a>`
+  );
 };
 
 const createMenuTemplate = (menuItems) => {
