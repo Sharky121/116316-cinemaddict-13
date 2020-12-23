@@ -1,4 +1,4 @@
-import {getRandomValueFromArray, getRandomArray, getRandomInteger, getRandomFloat, getRandomText} from "../utils";
+import {getRandomValueFromArray, getRandomArray, getRandomInteger, getRandomFloat, getRandomText} from "../utils/common";
 import {getDateBetween, getRuntime} from "../utils/date";
 
 const FILM_NAMES = [

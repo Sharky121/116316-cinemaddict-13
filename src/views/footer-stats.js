@@ -1,5 +1,5 @@
-import {getNumberWithSpaces} from "../utils";
-import {createElement} from "../utils/render";
+import {getNumberWithSpaces} from "../utils/common";
+import AbstractView from "./abstract";
 
 const createFooterStatsElement = (count) => {
   return (
@@ -9,25 +9,13 @@ const createFooterStatsElement = (count) => {
   );
 };
 
-export default class SiteFooter {
+export default class SiteFooter extends AbstractView {
   constructor(count) {
-    this._element = null;
+    super();
     this._count = count;
   }
 
   getTemplate() {
     return createFooterStatsElement(this._count);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }
