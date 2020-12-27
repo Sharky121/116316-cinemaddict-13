@@ -1,7 +1,7 @@
 import Abstract from "../views/abstract.js";
 import {RenderPosition} from "../const";
 
-export const render = (container, child, place) => {
+export const render = (container, child, place = RenderPosition.BEFOREEND) => {
   if (container instanceof Abstract) {
     container = container.getElement();
   }
@@ -36,4 +36,13 @@ export const renderTemplate = (container, template, place) => {
   }
 
   container.insertAdjacentHTML(place, template);
+};
+
+export const remove = (component) => {
+  if (!(component instanceof Abstract)) {
+    throw new Error(`Can remove only components`);
+  }
+
+  component.getElement().remove();
+  component.removeElement();
 };

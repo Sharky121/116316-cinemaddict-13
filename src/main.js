@@ -1,5 +1,5 @@
 import {RenderPosition, FilmSection, FilmsCount, ESC_KEY} from "./const";
-import {render} from "./utils/render";
+import {render, remove} from "./utils/render";
 import SiteProfileView from "./views/profile";
 import SiteMenuView from "./views/menu";
 import SiteSortView from "./views/sort";
@@ -23,7 +23,7 @@ const siteMainElement = document.querySelector(`.main`);
 const siteFooterElement = document.querySelector(`.footer`);
 
 // РЕНДЕР PROFILE
-render(siteHeaderElement, new SiteProfileView(), RenderPosition.BEFOREEND);
+render(siteHeaderElement, new SiteProfileView());
 
 // Создаем меню
 const siteMenuElement = new SiteMenuView(menu);
@@ -34,7 +34,7 @@ render(siteMainElement, siteMenuElement, RenderPosition.AFTERBEGIN);
 // MAIN КАРТОЧКИ ФИЛЬМОВ
 // Рендер основного борда под фильмы
 const siteFilmsBoard = new FilmsBoardView();
-render(siteMainElement, siteFilmsBoard, RenderPosition.BEFOREEND);
+render(siteMainElement, siteFilmsBoard);
 
 // Получаем экземпляры объектов для секций ALL, TOP, MOST_COMMENTED
 const siteAllFilmSection = new FilmsListView(FilmSection.ALL);
@@ -43,11 +43,10 @@ const siteMostCommentedFilmSection = new FilmsListView(FilmSection.MOST_COMMENTE
 const siteNoFilmSection = new FilmsListView(FilmSection.EMPTY);
 
 // ФУНКЦИЯ РЕНДЕРА КАРТОЧКИ ФИЛЬМА
-const renderFilmCard = (filmsSection, filmCard) => {
+const renderFilmCard = (filmsListContainer, filmCard) => {
   const filmComponent = new FilmCardView(filmCard);
-  const filmsListContainer = filmsSection.querySelector(`.films-list__container`);
 
-  render(filmsListContainer, filmComponent, RenderPosition.BEFOREEND);
+  render(filmsListContainer, filmComponent);
 
   // ФУНКЦИЯ ОТКРЫТИЯ ПОПАПА
   const openPopup = () => {
@@ -58,8 +57,7 @@ const renderFilmCard = (filmsSection, filmCard) => {
 
     const closePopup = () => {
       siteBodyElement.classList.remove(`hide-overflow`);
-      popupElement.getElement().remove();
-      popupElement.removeElement();
+      remove(popupElement);
       popupElement.removeClickHandler();
       document.removeEventListener(`keydown`, onPopupEscPress);
     };
@@ -78,21 +76,21 @@ const renderFilmCard = (filmsSection, filmCard) => {
 };
 
 // ФУНКЦИЯ РЕНДЕРА EXTRA СЕКЦИИ С ФИЛЬМАМИ
-const renderExtraSection = (siteFilmSection) => {
+const renderExtraSection = (siteFilmSection, filmsListContainer) => {
   const {title} = siteFilmSection._filmSection;
-  render(siteFilmsBoard, siteFilmSection, RenderPosition.BEFOREEND);
+  render(siteFilmsBoard, siteFilmSection);
 
   const sortFilms = (title === `Top rated`)
     ? [...filmCards].sort((a, b) => b.rate - a.rate).slice(0, FilmsCount.EXTRA)
     : [...filmCards].sort((a, b) => b.comments.length - a.comments.length).slice(0, FilmsCount.EXTRA);
 
   sortFilms.forEach((filmCard) => {
-    renderFilmCard(siteFilmSection.getElement(), filmCard);
+    renderFilmCard(filmsListContainer, filmCard);
   });
 };
 
 if (FilmsCount.ALL === 0) {
-  render(siteFilmsBoard, siteNoFilmSection, RenderPosition.BEFOREEND);
+  render(siteFilmsBoard, siteNoFilmSection);
 } else {
   // Рендерим секция под ALL FILMS
   render(siteFilmsBoard, siteAllFilmSection, RenderPosition.AFTERBEGIN);
@@ -100,9 +98,11 @@ if (FilmsCount.ALL === 0) {
   // РЕНДЕР МЕНЮ СОРТИРОВКИ
   render(siteMenuElement, new SiteSortView(), RenderPosition.AFTEREND);
 
+  const filmsListContainer = siteAllFilmSection.getElement().querySelector(`.films-list__container`);
+
   // РЕНДЕР СЕКЦИИ ALL MOVIES
   for (let i = 0; i < Math.min(filmCards.length, FilmsCount.COUNT_PER_STEP); i++) {
-    renderFilmCard(siteAllFilmSection.getElement(), filmCards[i]);
+    renderFilmCard(filmsListContainer, filmCards[i]);
   }
 
   // УСЛОВИЕ ДОПОКАЗА ФИЛЬМОВ
@@ -111,28 +111,29 @@ if (FilmsCount.ALL === 0) {
     const showMoreButtonComponent = new LoadMoreButton();
 
     // РЕНДЕР КНОПКИ ПОКАЗАТЬ ЕЩЕ
-    render(siteAllFilmSection, showMoreButtonComponent, RenderPosition.BEFOREEND);
+    render(siteAllFilmSection, showMoreButtonComponent);
 
     showMoreButtonComponent.setClickHandler(() => {
       filmCards
         .slice(renderedFilmsCount, renderedFilmsCount + FilmsCount.COUNT_PER_STEP)
-        .forEach((filmCard) => renderFilmCard(siteAllFilmSection.getElement(), filmCard));
+        .forEach((filmCard) => renderFilmCard(filmsListContainer, filmCard));
 
       renderedFilmsCount += FilmsCount.COUNT_PER_STEP;
 
       if (renderedFilmsCount >= filmCards.length) {
-        showMoreButtonComponent.getElement().remove();
-        showMoreButtonComponent.removeElement();
+        remove(showMoreButtonComponent);
       }
     });
   }
 
   // РЕНДЕР СЕКЦИИ TOP RATED
-  renderExtraSection(siteTopFilmSection);
+  const topFilmsListContainer = siteTopFilmSection.getElement().querySelector(`.films-list__container`);
+  renderExtraSection(siteTopFilmSection, topFilmsListContainer);
 
   // РЕНДЕР СЕКЦИИ MOST COMMENTED
-  renderExtraSection(siteMostCommentedFilmSection);
+  const mostCommentedFilmsListContainer = siteMostCommentedFilmSection.getElement().querySelector(`.films-list__container`);
+  renderExtraSection(siteMostCommentedFilmSection, mostCommentedFilmsListContainer);
 }
 
 // РЕНДЕР СТАТИСТИКИ В ФУТЕРЕ
-render(siteFooterElement, new SiteFooter(FilmsCount.STATS), RenderPosition.BEFOREEND);
+render(siteFooterElement, new SiteFooter(FilmsCount.STATS));

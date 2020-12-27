@@ -4,7 +4,7 @@ import {formatCommentDate} from "../utils/date";
 const createGenresTemplate = (genres) => {
   return genres
     .map((genre) => `<span class="film-details__genre">${genre}</span>`)
-    .join(` `);
+    .join(``);
 };
 
 const createCommentTemplate = (comment) => {
