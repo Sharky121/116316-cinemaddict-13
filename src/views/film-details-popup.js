@@ -1,10 +1,10 @@
+import AbstractView from "./abstract";
 import {formatCommentDate} from "../utils/date";
-import {createElement} from "../utils/render";
 
 const createGenresTemplate = (genres) => {
   return genres
     .map((genre) => `<span class="film-details__genre">${genre}</span>`)
-    .join(` `);
+    .join(``);
 };
 
 const createCommentTemplate = (comment) => {
@@ -217,25 +217,29 @@ const createFilmDetailsPopup = (filmCard) => {
   );
 };
 
-export default class Popup {
+export default class Popup extends AbstractView {
   constructor(filmCard) {
+    super();
     this._filmCard = filmCard;
-    this._element = null;
+    this._clickHandler = this._clickHandler.bind(this);
   }
 
   getTemplate() {
     return createFilmDetailsPopup(this._filmCard);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
+  _clickHandler(evt) {
+    evt.preventDefault();
+    this._callback.click();
   }
 
-  removeElement() {
-    this._element = null;
+  setClickHandler(callback) {
+    this._callback.click = callback;
+    this.getElement().querySelector(`.film-details__close-btn`).addEventListener(`click`, this._clickHandler);
+  }
+
+  removeClickHandler() {
+    this.getElement().removeEventListener(`click`, this._clickHandler);
+    this._callback = {};
   }
 }

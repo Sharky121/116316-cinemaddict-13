@@ -1,15 +1,24 @@
+import Abstract from "../views/abstract.js";
 import {RenderPosition} from "../const";
 
-export const render = (container, element, place) => {
+export const render = (container, child, place = RenderPosition.BEFOREEND) => {
+  if (container instanceof Abstract) {
+    container = container.getElement();
+  }
+
+  if (child instanceof Abstract) {
+    child = child.getElement();
+  }
+
   switch (place) {
     case RenderPosition.AFTERBEGIN:
-      container.prepend(element);
+      container.prepend(child);
       break;
     case RenderPosition.BEFOREEND:
-      container.append(element);
+      container.append(child);
       break;
     case RenderPosition.AFTEREND:
-      container.after(element);
+      container.after(child);
       break;
   }
 };
@@ -22,5 +31,18 @@ export const createElement = (template) => {
 };
 
 export const renderTemplate = (container, template, place) => {
+  if (container instanceof Abstract) {
+    container = container.getElement();
+  }
+
   container.insertAdjacentHTML(place, template);
+};
+
+export const remove = (component) => {
+  if (!(component instanceof Abstract)) {
+    throw new Error(`Can remove only components`);
+  }
+
+  component.getElement().remove();
+  component.removeElement();
 };
